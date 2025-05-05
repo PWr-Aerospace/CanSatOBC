@@ -1,0 +1,6 @@
+[submodule "thirdparty/STM32CubeH5"]
+	path = thirdparty/STM32CubeH5
+	url = https://github.com/STMicroelectronics/STM32CubeH5
+[submodule "thirdparty/cmsis-device-h5"]
+	path = thirdparty/cmsis-device-h5
+	url = https://github.com/STMicroelectronics/cmsis-device-h5
