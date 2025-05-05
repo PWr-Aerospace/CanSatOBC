@@ -10,6 +10,8 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
+              with:
+                  submodules: recursive
             # Install dependencies
             - name: Install gcc-arm-none-eabi
               run: sudo apt-get -y install gcc-arm-none-eabi cmake ninja-build
