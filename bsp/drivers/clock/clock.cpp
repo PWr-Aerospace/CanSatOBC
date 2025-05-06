@@ -22,11 +22,10 @@ clock_setup_HSE(uint8_t M, uint32_t N, uint8_t Q, uint8_t P)
 
   // Set source for PLL 1
   RCC->PLL1CFGR |= (M << RCC_PLL1CFGR_PLL1M_Pos); // Set dividers for PLL 1
-  //Enable output Q
-  RCC->PLL1CFGR |= RCC_PLL1CFGR_PLL1QEN;
-  RCC->PLL1CFGR |= RCC_PLL1CFGR_PLL1PEN;
+  //Enable outputs Q and P
+  RCC->PLL1CFGR |= RCC_PLL1CFGR_PLL1QEN | RCC_PLL1CFGR_PLL1PEN;
 
-  RCC->PLL1DIVR |= ((Q << RCC_PLL1DIVR_PLL1Q_Pos) | (P << RCC_PLL1DIVR_PLL1P_Pos) | N);
+  RCC->PLL1DIVR = (((Q-1)<< RCC_PLL1DIVR_PLL1Q_Pos) | ((P-1) << RCC_PLL1DIVR_PLL1P_Pos) | (N-1));
   // Set HSE as source for PLL 1
   RCC->PLL1CFGR |= 3 << RCC_PLL1CFGR_PLL1SRC_Pos;
   // Enable PLL 1
@@ -40,11 +39,14 @@ clock_setup_HSE(uint8_t M, uint32_t N, uint8_t Q, uint8_t P)
   RCC->CFGR1 |= (3 << RCC_CFGR1_SW_Pos);
   while (!(RCC->CFGR1 & (RCC_CFGR1_SWS_0 | RCC_CFGR1_SWS_0)))
     ;
-
-  SysTick_Config(SysTick_CALIB_TENMS_Msk * 10);
+  const uint32_t ticks_per_second = 16000000 / M * N / P;
+  if(SysTick_Config(ticks_per_second/1000)){
+	  while(true)
+		  ;
+  }
 }
 
-uint32_t ticks;
+static uint32_t ticks = 0;
 
 void
 SysTick_Handler(void)
@@ -59,7 +61,7 @@ SysTick_get_tick_count()
 }
 
 void
-sleep_ms(uint16_t ms)
+sleep_ms(uint32_t ms)
 {
   uint32_t start = ticks;
   while (ticks < (start + ms))
