@@ -8,8 +8,8 @@
 int
 main()
 {
-  const uint32_t desiredMhz = 400;
-  clock_setup_HSE(16, desiredMhz, 2, 2);
+  const uint32_t desiredMhz = 125;
+  clock_setup_HSE(16, desiredMhz, 1, 1);
 
   Gpio dbgLed('C', 13, Mode::Out);
   Gpio mux('A', 10, Mode::Out);
@@ -28,6 +28,7 @@ main()
   UART4->CR1 &= ~USART_CR1_M;
   UART4->BRR = (desiredMhz * 1000000 / 57600);
   UART4->CR2 &= ~USART_CR2_STOP;
+  UART4->CR2 |= USART_CR2_SWAP;
   UART4->CR1 |= USART_CR1_UE;
   UART4->CR1 |= USART_CR1_TE;
 
