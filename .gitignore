@@ -1,8 +1,0 @@
-Debug/*
-Release/*
-build/*
-.cache/*
-.settings/*
-.cproject
-.project
-*.launch
