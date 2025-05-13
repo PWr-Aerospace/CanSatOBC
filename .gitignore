@@ -3,6 +3,7 @@ Release/*
 build/*
 .cache/*
 .settings/*
+.idea/*
 .cproject
 .project
 *.launch
