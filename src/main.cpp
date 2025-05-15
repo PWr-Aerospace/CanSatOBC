@@ -1,6 +1,7 @@
 #include "drivers/clock/clock.hpp"
 #include "drivers/gpio/gpio.hpp"
 
+#include "etl/string.h"
 #include "interrupts.h"
 #include "stm32h533xx.h"
 #include "system/system.h"
@@ -40,6 +41,9 @@ uint8_t gotMessage = false;
 int
 main()
 {
+  etl::string<12> str;
+  str.clear();
+
   const uint32_t desiredMhz = 125;
   clock_setup_HSE(16, desiredMhz, 1, 1);
 

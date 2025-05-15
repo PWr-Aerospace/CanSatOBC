@@ -38,6 +38,7 @@ set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
 add_compile_definitions (${PROJECT_DEFINES})
 
 add_subdirectory(bsp)
+add_subdirectory(thirdparty)
 
 add_executable(
   ${PROJECT_NAME}
@@ -52,12 +53,15 @@ target_include_directories(
   PRIVATE
 	${CMAKE_SOURCE_DIR}/thirdparty/STM32CubeH5/Drivers/CMSIS/Core/Include
 	${CMAKE_SOURCE_DIR}/thirdparty/cmsis-device-h5/Include
+	${CMAKE_SOURCE_DIR}/thirdparty/etl/include
+	${CMAKE_SOURCE_DIR}/thirdparty/STM32CubeH5/Drivers/STM32H5xx_HAL_Driver/Inc
   bsp
 )
 
 target_link_libraries(
   ${PROJECT_NAME}
   bsplib
+  etl::etl
 )
 
 target_include_directories(

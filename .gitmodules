@@ -4,3 +4,6 @@
 [submodule "thirdparty/cmsis-device-h5"]
 	path = thirdparty/cmsis-device-h5
 	url = https://github.com/STMicroelectronics/cmsis-device-h5
+[submodule "thirdparty/etl"]
+	path = thirdparty/etl
+	url = https://github.com/ETLCPP/etl
