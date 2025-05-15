@@ -46,11 +46,46 @@ clock_setup_HSE(uint8_t M, uint32_t N, uint8_t Q, uint8_t P)
     while (true)
       ;
   }
+
+  // Setup PLL 2 for SD card
+  uint8_t pll2_m = 16;
+  uint32_t pll2_n = 192;
+  uint8_t pll2_r = 4;
+  	  // set as 100 MHz
+    RCC->CR &= ~RCC_CR_PLL2ON;
+
+    // Set source for PLL 1
+    RCC->PLL2CFGR |= (pll2_m << RCC_PLL2CFGR_PLL2M_Pos); // Set dividers for PLL 1
+    //Enable outputs $
+    RCC->PLL2CFGR |= RCC_PLL2CFGR_PLL2REN;
+
+    RCC->PLL2DIVR |= ((pll2_r-1) << RCC_PLL2DIVR_PLL2R_Pos | ((pll2_n-1)&RCC_PLL2DIVR_PLL2N) );
+    // Set HSE as source for PLL 1
+    RCC->PLL2CFGR |= 3 << RCC_PLL2CFGR_PLL2SRC_Pos;
+    // Enable PLL 1
+    RCC->CR |= RCC_CR_PLL2ON;
+
+    // Wait for PLL to stabilize
+    while (!(RCC->CR & RCC_CR_PLL2RDY_Msk))
+      ;
+    // Makes SDMMC use PLL 2
+    RCC->CCIPR4 |= (2 << RCC_CCIPR4_SDMMC1SEL_Pos);
 }
+static uint32_t ticks = 0;
+
+void
+sleep_ms(uint32_t ms)
+{
+  uint32_t start = ticks;
+  while (ticks < (start + ms))
+    ;
+}
+
+
 
 extern "C"{
 
-static uint32_t ticks = 0;
+
 
 void
 SysTick_Handler(void)
@@ -64,12 +99,12 @@ SysTick_get_tick_count()
   return ticks;
 }
 
+uint32_t HAL_GetTick(){
+	return ticks;
 }
 
-void
-sleep_ms(uint32_t ms)
-{
-  uint32_t start = ticks;
-  while (ticks < (start + ms))
-    ;
+void HAL_Delay(uint32_t t){
+	sleep_ms(t);
+}
+
 }

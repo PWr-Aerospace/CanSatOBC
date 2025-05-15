@@ -11,8 +11,49 @@
 #include <stdio.h>
 #include <string.h>
 
+#define SDIO_MAX_IO_NUMBER 7U
+
+#include "stm32h5xx_hal_sd.h"
+#include "stm32h5xx_hal_sdio.h"
+
 uint8_t uart4_busy = 0;
 
+void
+sd_test()
+{
+  //__HAL_RCC_SDMMC1_CLK_ENABLE
+  RCC->AHB4ENR |= RCC_AHB4ENR_SDMMC1EN;
+  RCC->CCIPR4 |= (1 << RCC_CCIPR4_SDMMC1SEL_Pos);
+
+  //	MMC_HandleTypeDef hmmc1;
+  SDIO_HandleTypeDef sdio1;
+
+  sdio1.Instance = SDMMC1;
+  sdio1.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;
+  sdio1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
+  sdio1.Init.BusWide = SDMMC_BUS_WIDE_1B;
+  sdio1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
+  sdio1.Init.ClockDiv = 3;
+  HAL_StatusTypeDef result = HAL_SDIO_Init(&sdio1);
+  if (result != HAL_OK)
+  {
+    while (1)
+      ;
+  }
+  //  SD_HandleTypeDef hsd1;
+  //
+  //  hsd1.Instance = SDMMC1;
+  //  hsd1.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;
+  //  hsd1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
+  //  hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B; // Start with 1-bit
+  //  hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
+  //  hsd1.Init.ClockDiv = 4;
+  //  if (HAL_SD_Init(&hsd1) != HAL_OK)
+  //  {
+  //    while (1)
+  //      ;
+  //  }
+}
 void
 print(const char* str)
 {
@@ -45,6 +86,7 @@ uint8_t gotMessage = false;
 int
 main()
 {
+  SystemCoreClockUpdate();
   etl::string<12> str;
   str.clear();
 
@@ -62,6 +104,19 @@ main()
 
   Gpio scl('B', 10, Mode::AF, Type::OD, 4);
   Gpio sda('B', 12, Mode::AF, Type::OD, 4);
+
+  Gpio sd_d0('C', 8, Mode::AF, Type::OD, Pull::Up, Speed::VeryHigh,12);
+  Gpio sd_d1('C', 9, Mode::AF, Type::OD, Pull::Up, Speed::VeryHigh,12);
+  Gpio sd_d2('C', 10, Mode::AF, Type::OD, Pull::Up, Speed::VeryHigh,12);
+  Gpio sd_d3('C', 11, Mode::AF, Type::OD, Pull::Up, Speed::VeryHigh,12);
+  Gpio sd_clk('C', 12, Mode::AF, Type::OD, Pull::None, Speed::VeryHigh,12);
+  Gpio sd_cmd('D', 2, Mode::AF, Type::OD, Pull::None, Speed::VeryHigh,12);
+  (void) sd_d0;
+  (void) sd_d1;
+  (void) sd_d2;
+  (void) sd_d3;
+  (void) sd_clk;
+  (void) sd_cmd;
 
   xbeeRst.set();
   mux.set();
@@ -112,6 +167,7 @@ main()
 
   while (1)
   {
+    sd_test();
     uart4_receive_to_idle();
     sleep_ms(1000);
     dbgLed.toggle();

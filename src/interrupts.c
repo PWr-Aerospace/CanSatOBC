@@ -1,3 +1,4 @@
+#include "interrupts.h"
 #include "stdint.h"
 #include "stm32h533xx.h"
 
@@ -34,3 +35,18 @@ UART4_IRQHandler(void)
     }
   }
 }
+
+void HardFault_Handler(void)
+{
+    volatile uint32_t *SCB_HFSR  = (uint32_t *)0xE000ED2C;
+    volatile uint32_t *SCB_CFSR  = (uint32_t *)0xE000ED28;
+    volatile uint32_t *SCB_BFAR  = (uint32_t *)0xE000ED38;
+    volatile uint32_t *SCB_MMAR  = (uint32_t *)0xE000ED34;
+    (void)SCB_HFSR;
+    (void)SCB_CFSR;
+    (void)SCB_BFAR;
+    (void)SCB_MMAR;
+
+    while (1);  // set breakpoint here
+}
+

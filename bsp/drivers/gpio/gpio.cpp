@@ -2,7 +2,7 @@
 
 #include "stm32h533xx.h"
 
-constexpr GPIO_TypeDef* ports[] = {GPIOA, GPIOB, GPIOC, GPIOD, GPIOE};
+GPIO_TypeDef* ports[] = {GPIOA, GPIOB, GPIOC, GPIOD, GPIOE};
 
 void
 assert(bool result)
@@ -15,16 +15,28 @@ assert(bool result)
 }
 
 Gpio::Gpio(char port, uint8_t pin, Mode m, Type t, uint8_t AF)
+  : _port(port), _pin(pin), _mode(m), _type(t), _af(AF)
 {
   assert(port >= 'A');
   assert(port <= 'F');
   assert(pin <= 15);
 
-  _port = port - 'A';
-  _pin = pin;
-  _mode = m;
-  _type = t;
+  setup();
+}
 
+Gpio::Gpio(char port, uint8_t pin, Mode m, Type t, Pull p, Speed s, uint8_t AF)
+  : _port(port - 'A'), _pin(pin), _mode(m), _type(t), _af(AF)
+{
+  assert(port >= 'A');
+  assert(port <= 'F');
+  assert(pin <= 15);
+
+  setup();
+}
+
+void
+Gpio::setup()
+{
   RCC->AHB2ENR |= (1 << _port);
 
   // Clear mode register and then write wanted value
@@ -37,10 +49,14 @@ Gpio::Gpio(char port, uint8_t pin, Mode m, Type t, uint8_t AF)
   if (_mode == Mode::AF)
   {
     if (_pin > 7)
-      ports[_port]->AFR[1] |= (AF << 4 * (_pin - 8));
+      ports[_port]->AFR[1] |= (_af << 4 * (_pin - 8));
     else
-      ports[_port]->AFR[0] |= (AF << (4 * _pin));
+      ports[_port]->AFR[0] |= (_af << (4 * _pin));
   }
+  if (_s != Speed::Low)
+    ports[_port]->OSPEEDR |= (static_cast<uint8_t>(_s) << (2 * _pin));
+  if (_p != Pull::None)
+    ports[_port]->PUPDR |= (static_cast<uint8_t>(_p) << (2 * _pin));
 }
 
 void
