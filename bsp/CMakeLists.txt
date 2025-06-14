@@ -2,6 +2,7 @@ add_library(bsplib
   STATIC
 	drivers/clock/clock.cpp
 	drivers/gpio/gpio.cpp
+	drivers/i2c/i2c.cpp
 )
 
 target_include_directories(

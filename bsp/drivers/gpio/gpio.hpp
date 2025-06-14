@@ -19,7 +19,7 @@ enum class Type : uint8_t
 class Gpio
 {
 public:
-  Gpio(char port, uint8_t pin, Mode m, uint8_t AF = 0);
+  Gpio(char port, uint8_t pin, Mode m, Type t = Type::PP, uint8_t AF = 0);
   bool get();
   void set();
   void reset();
@@ -29,4 +29,5 @@ private:
   uint8_t _port{};
   uint8_t _pin{};
   Mode _mode;
+  Type _type;
 };
