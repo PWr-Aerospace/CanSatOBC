@@ -14,7 +14,7 @@ assert(bool result)
   }
 }
 
-Gpio::Gpio(char port, uint8_t pin, Mode m, uint8_t AF)
+Gpio::Gpio(char port, uint8_t pin, Mode m, Type t, uint8_t AF)
 {
   assert(port >= 'A');
   assert(port <= 'F');
@@ -23,6 +23,7 @@ Gpio::Gpio(char port, uint8_t pin, Mode m, uint8_t AF)
   _port = port - 'A';
   _pin = pin;
   _mode = m;
+  _type = t;
 
   RCC->AHB2ENR |= (1 << _port);
 
@@ -30,6 +31,8 @@ Gpio::Gpio(char port, uint8_t pin, Mode m, uint8_t AF)
   reinterpret_cast<GPIO_TypeDef*>(ports[_port])->MODER &= ~(3 << (_pin * 2));
   reinterpret_cast<GPIO_TypeDef*>(ports[_port])->MODER |=
       (static_cast<uint8_t>(_mode) << (_pin * 2));
+
+  reinterpret_cast<GPIO_TypeDef*>(ports[_port])->OTYPER |= static_cast<uint8_t>(_type) << _pin;
 
   if (_mode == Mode::AF)
   {

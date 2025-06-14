@@ -48,6 +48,8 @@ clock_setup_HSE(uint8_t M, uint32_t N, uint8_t Q, uint8_t P)
   }
 }
 
+extern "C"{
+
 static uint32_t ticks = 0;
 
 void
@@ -60,6 +62,8 @@ uint32_t
 SysTick_get_tick_count()
 {
   return ticks;
+}
+
 }
 
 void
