@@ -67,6 +67,7 @@ target_link_libraries(
   bsplib
   stm32hal
   etl::etl
+  fatfs
 )
 
 target_include_directories(

@@ -1,65 +1,99 @@
 #include "drivers/clock/clock.hpp"
 #include "drivers/gpio/gpio.hpp"
 #include "drivers/i2c/i2c.hpp"
+#include "drivers/sd/sd.hpp"
 
 #include "etl/string.h"
 #include "interrupts.h"
 #include "stm32h533xx.h"
 #include "system/system.h"
 
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
-#define SDIO_MAX_IO_NUMBER 7U
+#include "fatfs/source/ff.h"
 
-#include "stm32h5xx_hal_sd.h"
-#include "stm32h5xx_hal_sdio.h"
+void print(const char* str);
+
+int
+printf(const char* format, ...)
+{
+  constexpr uint32_t PRINTF_BUFFER_SIZE = 8192;
+  char buffer[PRINTF_BUFFER_SIZE];
+  va_list args;
+  va_start(args, format);
+  int len = vsnprintf(buffer, PRINTF_BUFFER_SIZE, format, args);
+  va_end(args);
+
+  // Truncate if buffer is full
+  buffer[PRINTF_BUFFER_SIZE - 1] = '\0';
+
+  print(buffer);
+  return len;
+}
+
+extern FATFS* FatFs[]; // Or declare it yourself if needed
+
+void
+zero_fatfs_table(void)
+{
+  for (int i = 0; i < FF_VOLUMES; i++)
+  {
+    FatFs[i] = NULL;
+  }
+}
+static FATFS fs;
+
+void fatfs_setup(){
+	FRESULT res;
+	zero_fatfs_table();
+	  res = f_mount(&fs, "", 0); // "" = default drive, 1 = mount now
+	  if (res != FR_OK)
+	  {
+	    printf("f_mount failed: %d\r\n", res);
+	    return;
+	  }
+}
+
+void
+list_root_directory(void)
+{
+  FRESULT res;
+  DIR dir;
+  FILINFO fno;
+
+  res = f_opendir(&dir, "/"); // Open root directory
+  if (res != FR_OK)
+  {
+    printf("Failed to open root directory: %d\r\n", res);
+    return;
+  }
+
+  printf("Files in root directory:\r\n");
+
+  while (1)
+  {
+    res = f_readdir(&dir, &fno); // Read next item
+    if (res != FR_OK || fno.fname[0] == 0)
+      break; // Break on error or end of dir
+
+    if (fno.fattrib & AM_DIR)
+    {
+      printf("  [DIR]  '%s'\r\n", (char*)fno.fname);
+    }
+    else
+    {
+      printf("  [FILE] '%s' (%lu bytes)\r\n", (char*)fno.fname, (unsigned long) fno.fsize);
+    }
+  }
+
+  f_closedir(&dir);
+}
 
 uint8_t uart4_busy = 0;
 
-SD_HandleTypeDef hsd1;
-
-void
-sd_test()
-{
-  //__HAL_RCC_SDMMC1_CLK_ENABLE
-//  RCC->AHB4ENR |= RCC_AHB4ENR_SDMMC1EN;
-//  RCC->CCIPR4 |= (1 << RCC_CCIPR4_SDMMC1SEL_Pos);
-//
-//  //	MMC_HandleTypeDef hmmc1;
-//  SDIO_HandleTypeDef sdio1;
-//
-//  sdio1.Instance = SDMMC1;
-//  sdio1.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;
-//  sdio1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
-//  sdio1.Init.BusWide = SDMMC_BUS_WIDE_1B;
-//  sdio1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-//  sdio1.Init.ClockDiv = 3;
-//  HAL_StatusTypeDef result = HAL_SDIO_Init(&sdio1);
-//  if (result != HAL_OK)
-//  {
-//    while (1)
-//      ;
-//  }
-	RCC->AHB4ENR |= RCC_AHB4ENR_SDMMC1EN;
-//	RCC->CCIPR4 &= ~RCC_CCIPR4_SDMMC1SEL_Msk;
-//	RCC->CCIPR4 |= (0b01 << RCC_CCIPR4_SDMMC1SEL_Pos); // Choose PLL1 or appropriate clock source
-//
-
-    hsd1.Instance = SDMMC1;
-    hsd1.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;
-    hsd1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
-    hsd1.Init.BusWide = SDMMC_BUS_WIDE_4B; // Start with 1-bit
-    hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-    hsd1.Init.ClockDiv = 3;
-    if (HAL_SD_Init(&hsd1) != HAL_OK)
-    {
-      while (1)
-        ;
-    }
-
-}
 void
 print(const char* str)
 {
@@ -111,12 +145,12 @@ main()
   Gpio scl('B', 10, Mode::AF, Type::OD, 4);
   Gpio sda('B', 12, Mode::AF, Type::OD, 4);
 
-  Gpio sd_d0('C', 8, Mode::AF, Type::PP, Pull::Up, Speed::VeryHigh,12);
-  Gpio sd_d1('C', 9, Mode::AF, Type::PP, Pull::Up, Speed::VeryHigh,12);
-  Gpio sd_d2('C', 10, Mode::AF, Type::PP, Pull::Up, Speed::VeryHigh,12);
-  Gpio sd_d3('C', 11, Mode::AF, Type::PP, Pull::Up, Speed::VeryHigh,12);
-  Gpio sd_clk('C', 12, Mode::AF, Type::PP, Pull::None, Speed::VeryHigh,12);
-  Gpio sd_cmd('D', 2, Mode::AF, Type::PP, Pull::None, Speed::VeryHigh,12);
+  Gpio sd_d0('C', 8, Mode::AF, Type::PP, Pull::Up, Speed::VeryHigh, 12);
+  Gpio sd_d1('C', 9, Mode::AF, Type::PP, Pull::Up, Speed::VeryHigh, 12);
+  Gpio sd_d2('C', 10, Mode::AF, Type::PP, Pull::Up, Speed::VeryHigh, 12);
+  Gpio sd_d3('C', 11, Mode::AF, Type::PP, Pull::Up, Speed::VeryHigh, 12);
+  Gpio sd_clk('C', 12, Mode::AF, Type::PP, Pull::None, Speed::VeryHigh, 12);
+  Gpio sd_cmd('D', 2, Mode::AF, Type::PP, Pull::None, Speed::VeryHigh, 12);
   (void) sd_d0;
   (void) sd_d1;
   (void) sd_d2;
@@ -171,14 +205,19 @@ main()
   float vsys = 0;
   float vbat = 0;
 
-  sd_test();
+  sd_init();
+
+  fatfs_setup();
+
+  list_root_directory();
+
 
   while (1)
   {
-
     uart4_receive_to_idle();
     sleep_ms(1000);
     dbgLed.toggle();
+
 
     I2C2_Master_Read(0x6B, 0x30, data, 4);
     //    raw_reading = (data[1] << 8 | data[0]) >> 1;
@@ -191,6 +230,9 @@ main()
              vsys,
              vbat); // @suppress("Float formatting support")
     print((char*) message);
+//    sleep_ms(200);
+    const char name[16] = "kuba";
+    printf("My name: %s", name);
     if (gotMessage)
     {
       print((const char*) uart4_receive_buffer);

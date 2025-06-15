@@ -1,5 +1,6 @@
 set(GIT_DIR_LOOKUP_POLICY ALLOW_LOOKING_ABOVE_CMAKE_SOURCE_DIR)
 add_subdirectory(etl)
+add_subdirectory(fatfs)
 
 set(STM32_HAL_SRC_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/STM32CubeH5/Drivers/STM32H5xx_HAL_Driver/Src/)
 set(STM32_HAL_INC        ${CMAKE_CURRENT_SOURCE_DIR}/STM32CubeH5/Drivers/STM32H5xx_HAL_Driver/Inc)
