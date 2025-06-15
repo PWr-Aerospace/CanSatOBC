@@ -69,7 +69,7 @@ clock_setup_HSE(uint8_t M, uint32_t N, uint8_t Q, uint8_t P)
     while (!(RCC->CR & RCC_CR_PLL2RDY_Msk))
       ;
     // Makes SDMMC use PLL 2
-    RCC->CCIPR4 |= (2 << RCC_CCIPR4_SDMMC1SEL_Pos);
+    RCC->CCIPR4 |= (1 << RCC_CCIPR4_SDMMC1SEL_Pos);
 }
 static uint32_t ticks = 0;
 

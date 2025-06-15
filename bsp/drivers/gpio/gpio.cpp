@@ -2,7 +2,7 @@
 
 #include "stm32h533xx.h"
 
-GPIO_TypeDef* ports[] = {GPIOA, GPIOB, GPIOC, GPIOD, GPIOE};
+constexpr GPIO_TypeDef* ports[] = {GPIOA, GPIOB, GPIOC, GPIOD, GPIOE};
 
 void
 assert(bool result)
@@ -15,7 +15,7 @@ assert(bool result)
 }
 
 Gpio::Gpio(char port, uint8_t pin, Mode m, Type t, uint8_t AF)
-  : _port(port), _pin(pin), _mode(m), _type(t), _af(AF)
+  : _port(port-'A'), _pin(pin), _mode(m), _type(t), _af(AF)
 {
   assert(port >= 'A');
   assert(port <= 'F');
