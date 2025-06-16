@@ -6,10 +6,7 @@ extern SD_HandleTypeDef hsd1;
 DSTATUS disk_initialize(BYTE pdrv) {
   if (pdrv != 0)
     return STA_NOINIT;
-  if (HAL_SD_Init(&hsd1) != HAL_OK)
-    return STA_NOINIT;
-  if (HAL_SD_ConfigWideBusOperation(&hsd1, SDMMC_BUS_WIDE_4B) != HAL_OK)
-    return STA_NOINIT;
+  // The disk initializatino is currently handled manually
   return RES_OK;
 }
 
