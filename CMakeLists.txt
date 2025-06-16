@@ -24,6 +24,7 @@ set (MFLOAT_ABI               "")
 set (RUNTIME_LIBRARY          "--specs=nano.specs")
 set (RUNTIME_LIBRARY_SYSCALLS "--specs=nosys.specs")
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set (PROJECT_DEFINES STM32H533xx)
 
 ################## PROJECT SETUP ######################################
 project(${PROJECT_NAME})
@@ -46,6 +47,7 @@ add_executable(
   src/interrupts.c
   bsp/system/syscalls.c
   bsp/system/sysmem.c
+  bsp/system/system_stm32h5xx.c
   bsp/system/startup_stm32h533vetx.s
 )
 
@@ -56,13 +58,16 @@ target_include_directories(
 	${CMAKE_SOURCE_DIR}/thirdparty/cmsis-device-h5/Include
 	${CMAKE_SOURCE_DIR}/thirdparty/etl/include
 	${CMAKE_SOURCE_DIR}/thirdparty/STM32CubeH5/Drivers/STM32H5xx_HAL_Driver/Inc
+	${CMAKE_SOURCE_DIR}/thirdparty
   bsp
 )
 
 target_link_libraries(
   ${PROJECT_NAME}
   bsplib
+  stm32hal
   etl::etl
+  fatfs
 )
 
 target_include_directories(
