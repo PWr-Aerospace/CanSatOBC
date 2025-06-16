@@ -4,11 +4,10 @@
 #include "drivers/gpio/gpio.hpp"
 #include "drivers/i2c/i2c.hpp"
 #include "drivers/sd/sd.hpp"
-#include "proxy/logger/logger.hpp"
 #include "drivers/uart/uart.hpp"
+#include "proxy/logger/logger.hpp"
 
 #include "etl/string.h"
-#include "interrupts.h"
 #include "stm32h533xx.h"
 #include "system/system.h"
 
@@ -20,9 +19,6 @@
 int
 main()
 {
-  etl::string<12> str;
-  str.clear();
-
   clock_setup_HSE(16, desiredMhz, 1, 1);
   SystemCoreClockUpdate();
 
@@ -55,12 +51,25 @@ main()
   float vbat = 0;
 
   sd_init();
+  // Enable write access to BKPSRAM
+  PWR->DBPCR |= PWR_DBPCR_DBP;
+  // Enable voltage regulator for backup domain
+  PWR->BDCR |= PWR_BDCR_BREN;
+//  uint32_t myvar;
+  struct backup{
+	  uint32_t a;
+	  uint32_t b;
+  };
+  auto mem = reinterpret_cast<backup*>(BKPSRAM_BASE);
+//  mem->a = 2137;
+//  mem->b = 0xDEAD;
 
   list_root_directory();
 
+  etl::string<UART4_RX_BUFFER_SIZE+1> str;
+
   while (1)
   {
-    // uart4_receive_to_idle();
     dbgLed.toggle();
 
     list_root_directory();
@@ -70,16 +79,14 @@ main()
     vbat = ((data[1] << 8 | data[0]) >> 1) * 1.99;
     vsys = ((data[3] << 8 | data[2]) >> 1) * 1.99;
     // static char message[128]; //= "Hello world from CanSat!!!\r\n";
-    printf("System: %f mV\r\nBattery: %f mV\r\n",
+    printf("System: %f mV\r\nBattery: %f mV\r\nmyvar: %ld\r\n",
            vsys,
-           vbat); // @suppress("Float formatting support")
-    //    sleep_ms(200);
-    // if (gotMessage)
-    // {
-    //   print((const char*) uart4_receive_buffer);
-    //   uart4_receive_to_idle();
-    //   gotMessage = 0;
-    // }
+           vbat,
+		   mem->a);
+
+    if(uart4_data_received(str)){
+    	printf("Got message: '%s'\r\n", str.c_str());
+    }
     sleep_ms(1000);
   }
 }

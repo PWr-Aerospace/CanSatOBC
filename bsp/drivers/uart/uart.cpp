@@ -1,14 +1,21 @@
 #include "uart.hpp"
-
 #include "config.h"
 
 #include <stdint.h>
 #include <string.h>
 
+#include "etl/queue.h"
+#include "etl/string.h"
+
 #include "stm32h533xx.h"
 
 uint8_t uart4_busy = 0;
-uint8_t gotMessage = false;
+
+constexpr uint32_t max_messages_no = 16;
+//constexpr uint32_t UART4_RX_BUFFER_SIZE = 1023;
+uint8_t uart4_receive_buffer[UART4_RX_BUFFER_SIZE];
+
+etl::queue<etl::string<UART4_RX_BUFFER_SIZE + 1>, max_messages_no> queue;
 
 void
 print(const char* str)
@@ -25,9 +32,6 @@ print(const char* str)
   UART4->ICR |= USART_ICR_TCCF;
   GPDMA1_Channel0->CCR = DMA_CCR_TCIE | DMA_CCR_EN;
 }
-
-constexpr const uint32_t UART4_RX_BUFFER_SIZE = 1024;
-uint8_t uart4_receive_buffer[UART4_RX_BUFFER_SIZE];
 
 void
 uart4_receive_to_idle()
@@ -70,6 +74,27 @@ uart4_setup()
   UART4->ICR |= USART_ICR_IDLECF;
   NVIC_SetPriority(UART4_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 1, 2));
   NVIC_EnableIRQ(UART4_IRQn);
+
+  uart4_receive_to_idle();
+}
+
+void
+__uart4_received_message(uint8_t* cstr)
+{
+  if (queue.size() >= max_messages_no)
+    return;
+  queue.push((const char*) cstr);
+}
+
+bool
+uart4_data_received(etl::string<UART4_RX_BUFFER_SIZE + 1>& str)
+{
+  if (queue.empty())
+    return false;
+  //	str = std::move(queue.front());
+  queue.pop_into(str);
+  return true;
+  //	return queue.front();
 }
 
 void

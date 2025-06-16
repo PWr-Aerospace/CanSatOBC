@@ -2,6 +2,9 @@
 #include "stdint.h"
 #include "stm32h533xx.h"
 
+void __uart4_received_message(uint8_t *);
+void uart4_receive_to_idle();
+
 extern uint8_t uart4_busy;
 
 void GPDMA1_CH0_IRQHandler(void) {
@@ -11,7 +14,6 @@ void GPDMA1_CH0_IRQHandler(void) {
   }
 }
 
-extern uint8_t gotMessage;
 extern uint8_t uart4_receive_buffer[1024];
 
 void UART4_IRQHandler(void) {
@@ -24,7 +26,8 @@ void UART4_IRQHandler(void) {
       while (!(GPDMA1_Channel1->CSR & DMA_CSR_SUSPF))
         ;
       GPDMA1_Channel1->CCR |= DMA_CCR_RESET;
-      gotMessage = 1;
+      __uart4_received_message(uart4_receive_buffer);
+      uart4_receive_to_idle();
     }
   }
 }

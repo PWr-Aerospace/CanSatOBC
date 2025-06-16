@@ -15,5 +15,6 @@ target_include_directories(
 	${CMAKE_SOURCE_DIR}/thirdparty/cmsis-device-h5/Include
 	${CMAKE_SOURCE_DIR}/thirdparty/STM32CubeH5/Drivers/STM32H5xx_HAL_Driver/Inc
 	${CMAKE_SOURCE_DIR}/thirdparty/fatfs/source
+	${CMAKE_SOURCE_DIR}/thirdparty/etl/include
 	${CMAKE_SOURCE_DIR}/bsp
 )
