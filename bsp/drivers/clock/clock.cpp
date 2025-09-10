@@ -54,7 +54,7 @@ clock_setup_HSE(uint8_t M, uint32_t N, uint8_t Q, uint8_t P)
   // set as 100 MHz
   RCC->CR &= ~RCC_CR_PLL2ON;
 
-  // Set source for PLL 1
+  // Set source for PLL 2
   RCC->PLL2CFGR |= (pll2_m << RCC_PLL2CFGR_PLL2M_Pos); // Set dividers for PLL 1
   //Enable outputs $
   RCC->PLL2CFGR |= RCC_PLL2CFGR_PLL2REN;
@@ -62,7 +62,7 @@ clock_setup_HSE(uint8_t M, uint32_t N, uint8_t Q, uint8_t P)
   RCC->PLL2DIVR |= ((pll2_r - 1) << RCC_PLL2DIVR_PLL2R_Pos | ((pll2_n - 1) & RCC_PLL2DIVR_PLL2N));
   // Set HSE as source for PLL 1
   RCC->PLL2CFGR |= 3 << RCC_PLL2CFGR_PLL2SRC_Pos;
-  // Enable PLL 1
+  // Enable PLL 2
   RCC->CR |= RCC_CR_PLL2ON;
 
   // Wait for PLL to stabilize
