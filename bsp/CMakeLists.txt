@@ -17,4 +17,5 @@ target_include_directories(
 	${CMAKE_SOURCE_DIR}/thirdparty/fatfs/source
 	${CMAKE_SOURCE_DIR}/thirdparty/etl/include
 	${CMAKE_SOURCE_DIR}/bsp
+	${CMAKE_SOURCE_DIR}/src
 )
