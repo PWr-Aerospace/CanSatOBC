@@ -5,6 +5,7 @@ add_library(bsplib
 	drivers/i2c/i2c.cpp
 	drivers/sd/sd.cpp
 	drivers/uart/uart.cpp
+	drivers/spi/spi.cpp
 	proxy/logger/logger.cpp
 )
 
@@ -15,5 +16,7 @@ target_include_directories(
 	${CMAKE_SOURCE_DIR}/thirdparty/cmsis-device-h5/Include
 	${CMAKE_SOURCE_DIR}/thirdparty/STM32CubeH5/Drivers/STM32H5xx_HAL_Driver/Inc
 	${CMAKE_SOURCE_DIR}/thirdparty/fatfs/source
+	${CMAKE_SOURCE_DIR}/thirdparty/etl/include
 	${CMAKE_SOURCE_DIR}/bsp
+	${CMAKE_SOURCE_DIR}/src
 )
