@@ -5,6 +5,7 @@ add_library(bsplib
 	drivers/i2c/i2c.cpp
 	drivers/sd/sd.cpp
 	drivers/uart/uart.cpp
+	drivers/spi/spi.cpp
 	proxy/logger/logger.cpp
 )
 
